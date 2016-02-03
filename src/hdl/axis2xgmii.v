@@ -150,7 +150,6 @@ module axis2xgmii (
 
                 SRES : begin
                     dic <= 'b0;
-                    crc_32 <= CRC802_3_PRESET;
                     tready <= 1'b1;
                     fsm <= IDLE_L0;
                 end
@@ -162,7 +161,7 @@ module axis2xgmii (
                     tkeep_i <= tkeep;
                     lane4_start <= 1'b0;
                     if (tvalid) begin
-                        crc_32 <= crc8B(crc_32,tdata);
+                        crc_32 <= crc8B(CRC802_3_PRESET,tdata);
                         d <= PREAMBLE_LANE0_D;
                         c <= PREAMBLE_LANE0_C;
                         fsm <= ST_LANE0;
@@ -226,7 +225,6 @@ module axis2xgmii (
                     d <= tdata_i;
                     c <= 8'h00;
                     calcted_crc4B <= ~crc_rev(crc_32);
-                    crc_32 <= CRC802_3_PRESET;
                     fsm <= T_LANE4;
                 end
 
@@ -237,7 +235,6 @@ module axis2xgmii (
                 end
 
                 L0_FIN_7B_6B_5B : begin
-                    crc_32 <= CRC802_3_PRESET;
                     casex (tkeep_i[6:4])
                         3'b1xx : begin
                             aux_var_crc = ~crc_rev(crc_32_7B);
@@ -279,7 +276,7 @@ module axis2xgmii (
                     tdata_i <= tdata;
                     tkeep_i <= tkeep;
                     if (tvalid) begin
-                        crc_32 <= crc8B(crc_32,tdata);
+                        crc_32 <= crc8B(CRC802_3_PRESET,tdata);
                         d <= PREAMBLE_LANE4_D;
                         c <= PREAMBLE_LANE4_C;
                         fsm <= ST_LANE4;
@@ -320,7 +317,6 @@ module axis2xgmii (
                 L0_FIN_4B : begin
                     d <= {~crc_rev(crc_32_4B), tdata_i[31:0]};
                     c <= 8'b0;
-                    crc_32 <= CRC802_3_PRESET;
                     fsm <= T_LANE0;
                 end
 
@@ -332,7 +328,6 @@ module axis2xgmii (
                 end
 
                 L0_FIN_3B_2B_1B : begin
-                    crc_32 <= CRC802_3_PRESET;
                     casex (tkeep_i[2:0])
                         3'b1xx : begin
                             d <= {T, ~crc_rev(crc_32_3B), tdata_i[23:0]};
@@ -478,12 +473,10 @@ module axis2xgmii (
                     d <= {tdata_i[31:0], aux_dw};
                     c <= 8'b0;
                     calcted_crc4B <= ~crc_rev(crc_32_4B);
-                    crc_32 <= CRC802_3_PRESET;
                     fsm <= T_LANE4;
                 end
 
                 L4_FIN_3B_2B_1B : begin
-                    crc_32 <= CRC802_3_PRESET;
                     casex (tkeep_i[2:0])
                         3'b1xx : begin
                             aux_var_crc = ~crc_rev(crc_32_3B);
