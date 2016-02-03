@@ -89,6 +89,7 @@ module stim_axis_tx (
     reg          [63:0]      i;
     reg          [63:0]      wait_count;
     reg          [74:0]      map_axis;
+    reg                      aborted_flag;
 
     //-------------------------------------------------------
     // assigns
@@ -138,12 +139,23 @@ module stim_axis_tx (
                             fsm <= s2;
                         end
                     end
+                    aborted_flag <= 1'b0;
                 end
 
                 s2 : begin
                     if (tx_axis_tready) begin
+                        if (is_explic_underrun(map_axis)) begin
+                            aborted_pkts <= aborted_pkts + 1;
+                            aborted_flag <= 1'b1;
+                        end
+
                         if (is_last(map_axis)) begin
-                            pushed_pkts <= pushed_pkts + 1;
+                            if (!aborted_flag) begin
+                                pushed_pkts <= pushed_pkts + 1;
+                            end
+                            else begin
+                                aborted_flag <= 1'b0;
+                            end
                             if (i == DATA_SIZE) begin
                                 map_axis <= 'b0;
                                 fsm <= s4;
@@ -156,11 +168,6 @@ module stim_axis_tx (
                                 map_axis <= 'b0;
                                 fsm <= s1;
                             end
-                        end
-                        else if (is_explic_underrun(map_axis)) begin
-                            map_axis <= 'b0;
-                            aborted_pkts <= aborted_pkts + 1;
-                            fsm <= s1;
                         end
                         else if (is_valid(din[i])) begin
                             map_axis <= din[i];

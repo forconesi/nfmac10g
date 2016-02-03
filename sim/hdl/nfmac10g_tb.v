@@ -112,7 +112,7 @@ module nfmac10g_tb (
         .rx_dcm_locked(rx_dcm_locked),                         // I
         // Flow control
         .tx_ifg_delay(8'b0),                                   // I
-        .pause_val(15'b0),                                     // I
+        .pause_val(16'b0),                                     // I
         .pause_req(1'b0),                                      // I
         // Conf vectors
         .tx_configuration_vector(80'b0),                       // I

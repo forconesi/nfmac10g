@@ -74,6 +74,7 @@ module out_chk_rx (
     `include "localparam.dat"
     `include "sim_stim.dat"
     `include "corr_pkt.dat"
+    `include "disc_pkt.dat"
 
     localparam GOOD_PKT_CODE = 2'b11;
     localparam BAD_PKT_CODE = 2'b10;
@@ -189,23 +190,37 @@ module out_chk_rx (
             case (out_fsm)
 
                 s0 : begin
+                    if (is_valid(din[din_idx])) begin
+                        out_fsm <= s1;
+                    end
+                    else begin
+                        if (din_idx >= DATA_SIZE) begin
+                            out_fsm <= s1;
+                        end
+                        else begin
+                            din_idx <= din_idx + 1;  // mind the gap
+                        end
+                    end
+                end
+
+                s1 : begin
                     if (pkt_idx_in > pkt_idx_out) begin // new pkt received
                         if (rcved_crc[pkt_idx_out] == GOOD_PKT_CODE) begin
-                            if (corrupt_pkt[pkt_idx_out]) begin
+                            if (corrupt_pkt[pkt_idx_out] || disc_pkt[pkt_idx_out]) begin
                                 `pr_err("Expected BAD, received GOOD")
                                 $finish;
                             end
                             else begin
-                                out_fsm <= s1; // check that the received frame matches the input frame
+                                out_fsm <= s2; // check that the received frame matches the input frame
                             end
                         end
                         else begin // a bad pkt was received
-                            if (!corrupt_pkt[pkt_idx_out]) begin
+                            if (!corrupt_pkt[pkt_idx_out] && !disc_pkt[pkt_idx_out]) begin
                                 `pr_err("Expected GOOD, received BAD")
                                 $finish;
                             end
                             else begin
-                                out_fsm <= s2; // skip input pkt
+                                out_fsm <= s3; // skip input pkt
                             end
                         end
                     end
@@ -215,12 +230,12 @@ module out_chk_rx (
                             `pr_err("Received BAD mismatches input BAD")
                             $finish;
                         end
-                        else if (good_chked != (pushed_pkts-bad_chked)) begin
+                        else if (good_chked != (PKT_COUNT-bad_chked)) begin
                             `pr_err("Received GOOD mismatches input GOOD")
                             $finish;
                         end
                         else begin
-                             out_fsm <= s3; // sim ok
+                             out_fsm <= s4; // sim ok
                         end
                     end
                     else if (input_pkts_done) begin
@@ -232,7 +247,7 @@ module out_chk_rx (
                     end
                 end
 
-                s1 : begin
+                s2 : begin
                     if (is_valid(din[din_idx])) begin
                         if ((filter_tdata(din[din_idx]) == filter_tdata(dout[dout_idx])) &&
                             (get_tkeep(din[din_idx]) == get_tkeep(dout[dout_idx]))) begin
@@ -244,25 +259,20 @@ module out_chk_rx (
                                     pkt_idx_out <= pkt_idx_out + 1;
                                     out_fsm <= s0;
                                 end
-                                else begin
-                                    `pr_err("Input and received pkt mismatches")
-                                    $finish;
-                                end
                             end
+                        end
+                        else begin
+                            `pr_err("Input and received pkt mismatches")
+                            $finish;
                         end
                     end
                     else begin
-                        if (din_idx >= DATA_SIZE) begin
-                            `pr_err("Input index overrun")
-                            $finish;
-                        end
-                        else begin
-                            din_idx <= din_idx + 1; // mind the gap
-                        end
+                        `pr_err("Received pkt not valid")
+                        $finish;
                     end
                 end
 
-                s2 : begin
+                s3 : begin
                     if (is_valid(din[din_idx])) begin
                         din_idx <= din_idx + 1;
                         if (is_last(din[din_idx])) begin
@@ -272,17 +282,13 @@ module out_chk_rx (
                         end
                     end
                     else begin
-                        if (din_idx >= DATA_SIZE) begin
-                            `pr_err("Input index overrun")
-                            $finish;
-                        end
-                        else begin
-                            din_idx <= din_idx + 1; // mind the gap
-                        end
+                        bad_chked = bad_chked + 1;
+                        pkt_idx_out <= pkt_idx_out + 1;
+                        out_fsm <= s0;
                     end
                 end
 
-                s3 : begin
+                s4 : begin
                     // sim ok
                     `pr("Sim ok")
                     $finish;

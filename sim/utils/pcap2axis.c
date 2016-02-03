@@ -38,6 +38,14 @@
 #define pr_corr_v(f, v, trn)   if (trn > 0) fprintf(f, ","); \
                                 fprintf(f, "1'b%x\n", v);
 
+/* prints wire declaration for disc_pkt */
+#define pr_hdr_disc(f) fprintf(f, "wire [1:0] disc_pkt[0:PKT_COUNT-1] = {\n"); \
+                    fprintf(f, "/* 0: no-discontinue -- 1: tuser (explicit underrun) -- 2: tvalid (implicit underrun)*/\n");
+
+/* prints disc_pkt val */
+#define pr_disc_v(f, v, pkt)   if (pkt > 0) fprintf(f, ","); \
+                                fprintf(f, "2'd%d\n", v);
+
 /* prints 1 if packet should be corrupted */
 void
 pr_corr(
@@ -77,7 +85,7 @@ main(
     struct pcap_pkthdr pkt_hdr;
 
     /* output files */
-    FILE *din_fp, *parm_fp, *corr_fp;
+    FILE *din_fp, *parm_fp, *corr_fp, *disc_fp;
 
     int i, j, k, z, trn_cnt, pkt_trn_cnt;
     uint64_t tdata;
@@ -111,17 +119,20 @@ main(
     din_fp = fopen("sim_stim.dat", "w");
     parm_fp = fopen("localparam.dat", "w");
     corr_fp = fopen("corr_pkt.dat", "w");
-    if (din_fp == NULL || parm_fp == NULL || corr_fp == NULL) {
+    disc_fp = fopen("disc_pkt.dat", "w");
+    if (din_fp == NULL || parm_fp == NULL || corr_fp == NULL || disc_fp == NULL) {
         pcap_close(pcap_dscr);
         fclose(din_fp);
         fclose(parm_fp);
         fclose(corr_fp);
+        fclose(disc_fp);
         printf("Failed to open output files\n");
         return -1;
     }
 
     trn_cnt = 0;
     pr_hdr_din(din_fp);
+    pr_hdr_disc(disc_fp);
 
     for (z = 0; ; z++) {
         pkt = pcap_next(pcap_dscr, &pkt_hdr);
@@ -133,6 +144,8 @@ main(
             pcap_close(pcap_dscr);
             pr_corr(corr_fp, z, corr_levl);
             fclose(corr_fp);
+            pr_close_arr(disc_fp);
+            fclose(disc_fp);
             return 0;
         }
 
@@ -176,6 +189,7 @@ main(
         }
 
         pr_pkt_foot_din(din_fp, z, i, chopped_pkt);
+        pr_disc_v(disc_fp, chopped_pkt ? underrun : 0, z);
 
         /* Inteframe Gap */
         for (j = 0; j < ((ifg*z) % 17); j++) {
