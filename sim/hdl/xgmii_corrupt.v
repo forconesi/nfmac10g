@@ -3,7 +3,7 @@
 *  NetFPGA-10G http://www.netfpga.org
 *
 *  File:
-*        xgmii_connect.v
+*        xgmii_corrupt.v
 *
 *  Project:
 *
@@ -12,7 +12,7 @@
 *        Marco Forconesi
 *
 *  Description:
-*        Test bench
+*        Loopback XGMII interface and introduce channel errors
 *
 *
 *    This code is initially developed for the Network-as-a-Service (NaaS) project.
@@ -43,7 +43,7 @@
 `timescale 1ns / 100ps
 //`default_nettype none
 
-module xgmii_connect (
+module xgmii_corrupt (
 
     // Clks and resets
     input                    clk,
@@ -54,53 +54,86 @@ module xgmii_connect (
     // XGMII
     input        [63:0]      xgmii_txd,
     input        [7:0]       xgmii_txc,
-    output       [63:0]      xgmii_rxd,
-    output       [7:0]       xgmii_rxc,
+    output reg   [63:0]      xgmii_rxd,
+    output reg   [7:0]       xgmii_rxc,
 
     // Sim info
     output       [63:0]      pkts_detected,
-    output       [63:0]      corrupted_pkts
+    output reg   [63:0]      corrupted_pkts
     );
 
-    //-------------------------------------------------------
-    // Local clk
-    //-------------------------------------------------------
+    `include "localparam.dat"
+    `include "corr_pkt.dat"
+
+    localparam s0 = 8'b00000001;
+    localparam s1 = 8'b00000010;
+    localparam s2 = 8'b00000100;
+    localparam s3 = 8'b00001000;
+    localparam s4 = 8'b00010000;
+    localparam s5 = 8'b00100000;
+    localparam s6 = 8'b01000000;
+    localparam s7 = 8'b10000000;
 
     //-------------------------------------------------------
+    // Local
+    //-------------------------------------------------------
+    reg          [63:0]      fsm;
+    reg          [63:0]      i, trn;
+
+    //-------------------------------------------------------
+    // assigns
+    //-------------------------------------------------------
+    assign pkts_detected = i;
+
+    ////////////////////////////////////////////////
     // xgmii_corrupt
-    //-------------------------------------------------------
-    xgmii_corrupt xgmii_corrupt_mod (
-        // Clks and resets
-        .clk(clk),                                             // I
-        .reset(rst),                                           // I
-        .tx_dcm_locked(tx_dcm_locked),                         // I
-        .rx_dcm_locked(rx_dcm_locked),                         // I
-        // XGMII
-        .xgmii_txd(xgmii_txd),                                 // I [63:0]
-        .xgmii_txc(xgmii_txc),                                 // I [7:0]
-        .xgmii_rxd(xgmii_rxd),                                 // O [63:0]
-        .xgmii_rxc(xgmii_rxc),                                 // O [7:0]
-        // Sim info
-        .pkts_detected(xgmii_pkts_detected),                   // O [63:0]
-        .corrupted_pkts(xgmii_corrupted_pkts)                  // O [63:0]
-        );
+    ////////////////////////////////////////////////
+    always @(posedge clk) begin
 
-    //-------------------------------------------------------
-    // ifg_monitor
-    //-------------------------------------------------------
-    ifg_monitor # (
-        .C_RX_LINK(0)
-    ) tx_ifg_monitor_mod (
-        // Clks and resets
-        .clk(clk),                                             // I
-        .reset(rst),                                           // I
-        .dcm_locked(tx_dcm_locked),                            // I
-        // XGMII
-        .xgmii_d(xgmii_txd),                                   // I [63:0]
-        .xgmii_c(xgmii_txc)                                    // I [7:0]
-        );
+        if (reset || !tx_dcm_locked || !rx_dcm_locked) begin
+            xgmii_rxd <= xgmii_txd;
+            xgmii_rxc <= xgmii_txc;
+            i <= 0;
+            trn <= 0;
+            corrupted_pkts <= 0;
+            fsm <= s0;
+        end
 
-endmodule // xgmii_connect
+        else begin
+
+            xgmii_rxd <= xgmii_txd;
+            xgmii_rxc <= xgmii_txc;
+
+            case (fsm)
+
+                s0 : begin
+                    if (xgmii_txc != 8'hFF) begin
+                        trn <= 1;
+                        fsm <= s1;
+                    end
+                end
+
+                s1 : begin
+                    trn <= trn + 1;
+                    if (trn == 3) begin
+                        if (corrupt_pkt[i]) begin
+                            corrupted_pkts <= corrupted_pkts + 1;
+                            xgmii_rxd <= {xgmii_txd[63:1], ~xgmii_txd[0]};
+                            xgmii_rxc <= xgmii_txc;
+                        end
+                    end
+
+                    if (xgmii_txc) begin
+                        i <= i + 1;
+                        fsm <= s0;
+                    end
+                end
+
+            endcase
+        end
+    end
+
+endmodule // xgmii_corrupt
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
