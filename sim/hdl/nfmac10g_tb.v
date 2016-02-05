@@ -115,8 +115,8 @@ module nfmac10g_tb (
         .pause_val(16'b0),                                     // I
         .pause_req(1'b0),                                      // I
         // Conf vectors
-        .tx_configuration_vector(80'b0),                       // I
-        .rx_configuration_vector(80'b0),                       // I
+        .tx_configuration_vector({69'b0,1'b1,8'b0,2'b10}),     // I
+        .rx_configuration_vector({78'b0,2'b10}),               // I
         // XGMII
         .xgmii_txd(xgmii_txd),                                 // O [63:0]
         .xgmii_txc(xgmii_txc),                                 // O [7:0]
