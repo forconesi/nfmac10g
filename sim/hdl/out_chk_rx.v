@@ -44,6 +44,7 @@
 //`default_nettype none
 `define pr_err(msg) $display("Out-Chk: ERROR %s", msg);
 `define pr(msg) $display("Out-Chk: INFO %s", msg);
+`define pr_stat(msg, d) $display("Out-Chk: INFO %s: %d", msg, d);
 
 module out_chk_rx (
 
@@ -290,7 +291,9 @@ module out_chk_rx (
 
                 s4 : begin
                     // sim ok
-                    `pr("Sim ok")
+                    `pr_stat("Good frames received", good_chked)
+                    `pr_stat("Bad frames received", bad_chked)
+                    `pr("SIM OK")
                     $finish;
                 end
 

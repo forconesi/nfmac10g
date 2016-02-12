@@ -1,28 +1,31 @@
 # Marco Forconesi
 
 GEN_DIR ?= utils
+clean_vivado := XilMacPrj*
 
-.PHONY: clean sim
+sep := "//////////////////"
 
-sim:
-	# Test
-	echo "Max throughput, no corrupted pkts, no underrun"
-	make -s -C $(GEN_DIR) runsim SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) IFG=0 CORR_LEVL=0 UNDERRUN=0
-	# Test
-	echo "Mid throughput, no corrupted pkts, no underrun"
-	make -s -C $(GEN_DIR) runsim SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) IFG=20 CORR_LEVL=0 UNDERRUN=0
-	# Test
-	echo "Max throughput, some corrupted pkts, no underrun"
-	make -s -C $(GEN_DIR) runsim SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) IFG=0 CORR_LEVL=1 UNDERRUN=0
-	# Test
-	echo "Max throughput, all pkts corrupted, no underrun"
-	make -s -C $(GEN_DIR) runsim SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) IFG=0 CORR_LEVL=2 UNDERRUN=0
-	# Test
-	echo "Max throughput, no corrupted pkts, explicit underrun"
-	make -s -C $(GEN_DIR) runsim SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) IFG=0 CORR_LEVL=0 UNDERRUN=1
-	# Test
-	echo "Max throughput, no corrupted pkts, implicit underrun"
-	make -s -C $(GEN_DIR) runsim SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) IFG=0 CORR_LEVL=0 UNDERRUN=2
+.PHONY: clean sim loopback interoperability
 
-clean:
+sim: loopback interoperability
+
+loopback:
+	echo "$(sep)\nLoopback on XGMII interfaces\n$(sep)" >> $(LOG)
+	make -s -C $(GEN_DIR) siminst SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) TEST=loopback LOG=$(LOG)
+
+interoperability:
+	echo "create Xilinx ten_gig_eth_mac core"
+	vivado -nojou -nolog -mode batch -source genip_xilinx_mac.tcl -tclargs $(SIMHDL)
+	make -s clean_vivado
+	echo "\n\n$(sep)\nnfmac.Tx -> xilinx_mac.Rx\n$(sep)" >> $(LOG)
+	make -s -C $(GEN_DIR) siminst SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) TEST=nf2xil
+	echo "xilinx_mac Tx -> nfmac Rx" >> $(LOG)
+	echo "\n\n$(sep)\nxilinx_mac.Tx -> nfmac.Rx\n$(sep)" >> $(LOG)
+	make -s -C $(GEN_DIR) siminst SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) PCAP=$(PCAP) TEST=xil2nf
+
+clean_vivado:
+	rm -rf $(clean_vivado)
+
+clean: clean_vivado
 	make -s -C $(GEN_DIR) clean
+	rm -rf $(SIMHDL)/xilinx* $(SIMHDL)/ten_gig_eth_mac*

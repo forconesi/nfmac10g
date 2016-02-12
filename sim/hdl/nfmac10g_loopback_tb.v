@@ -3,7 +3,7 @@
 *  NetFPGA-10G http://www.netfpga.org
 *
 *  File:
-*        nfmac10g_tb.v
+*        nfmac10g_loopback_tb.v
 *
 *  Project:
 *
@@ -12,7 +12,7 @@
 *        Marco Forconesi
 *
 *  Description:
-*        Test bench
+*        Test bench. Loops back a single mac core at the XGMII interfaces
 *
 *
 *    This code is initially developed for the Network-as-a-Service (NaaS) project.
@@ -43,7 +43,7 @@
 `timescale 1ns / 100ps
 //`default_nettype none
 
-module nfmac10g_tb (
+module nfmac10g_loopback_tb (
 
     );
 
@@ -236,7 +236,7 @@ module nfmac10g_tb (
     always
         #RX_AXIS_ARESETN_ASSERTED rx_axis_aresetn = 1;
 
-endmodule // nfmac10g_tb
+endmodule // nfmac10g_loopback_tb
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
