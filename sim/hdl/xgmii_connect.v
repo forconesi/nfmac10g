@@ -72,7 +72,7 @@ module xgmii_connect (
     xgmii_corrupt xgmii_corrupt_mod (
         // Clks and resets
         .clk(clk),                                             // I
-        .reset(rst),                                           // I
+        .reset(reset),                                         // I
         .tx_dcm_locked(tx_dcm_locked),                         // I
         .rx_dcm_locked(rx_dcm_locked),                         // I
         // XGMII
@@ -81,8 +81,8 @@ module xgmii_connect (
         .xgmii_rxd(xgmii_rxd),                                 // O [63:0]
         .xgmii_rxc(xgmii_rxc),                                 // O [7:0]
         // Sim info
-        .pkts_detected(xgmii_pkts_detected),                   // O [63:0]
-        .corrupted_pkts(xgmii_corrupted_pkts)                  // O [63:0]
+        .pkts_detected(pkts_detected),                         // O [63:0]
+        .corrupted_pkts(corrupted_pkts)                        // O [63:0]
         );
 
     //-------------------------------------------------------
@@ -93,7 +93,7 @@ module xgmii_connect (
     ) tx_ifg_monitor_mod (
         // Clks and resets
         .clk(clk),                                             // I
-        .reset(rst),                                           // I
+        .reset(reset),                                         // I
         .dcm_locked(tx_dcm_locked),                            // I
         // XGMII
         .xgmii_d(xgmii_txd),                                   // I [63:0]
