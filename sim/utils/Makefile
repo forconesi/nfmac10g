@@ -18,7 +18,12 @@ ifeq ($(TEST),xil2nf)
 	xvflags := -d rx=nfmac10g -d tx=xilinx_mac
 endif
 
-.PHONY: clean cleansim gen_stim runsim siminst
+ifeq ($(TEST),axis_loopback)
+	top_sim_hdl := usr_intf_axis_loopback_tb
+	xvflags := -d rx=nfmac10g -d tx=nfmac10g $(USR_INTF_SRCHDL)/*.v
+endif
+
+.PHONY: clean cleansim gen_stim runsim siminst sim_usr_intf
 
 siminst:
 	for ifgi in 0 10 20 ; do \
@@ -48,6 +53,16 @@ runsim: gen_stim
 	xsim -R sim_snapshot > simlog
 	grep -i "SIM OK" simlog || (echo "Simulation failed, see reports"; false)
 	cat simlog >> $(LOG)
+
+sim_usr_intf:
+	for ifgi in 0 10 20 ; do \
+		make -s runsim SIMHDL=$(SIMHDL) SRCHDL=$(SRCHDL) USR_INTF_SRCHDL=$(USR_INTF_SRCHDL) PCAP=$(PCAP) TEST=$(TEST) \
+			IFG=$$ifgi CORR_LEVL=0 UNDERRUN=0 LOG=$(LOG) ; \
+		simresult=$$? ; \
+		if [ $$simresult -ne 0 ] ; then \
+			echo "Simulation failed. Check reports"; break; fi ; \
+	done ; \
+	if [ $$simresult -ne 0 ] ; then false ; fi ;
 
 gen_stim: pcap2axis cleansim
 	./$< $(PCAP) $(IFG) $(CORR_LEVL) $(UNDERRUN)
