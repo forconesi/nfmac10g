@@ -1,45 +1,32 @@
-/*******************************************************************************
-*
-*  NetFPGA-10G http://www.netfpga.org
-*
-*  File:
-*        out_chk_rx.v
-*
-*  Project:
-*
-*
-*  Author:
-*        Marco Forconesi
-*
-*  Description:
-*        Check the output pkts
-*
-*
-*    This code is initially developed for the Network-as-a-Service (NaaS) project.
-*
-*  Copyright notice:
-*        Copyright (C) 2015 University of Cambridge
-*
-*  Licence:
-*        This file is part of the NetFPGA 10G development base package.
-*
-*        This file is free code: you can redistribute it and/or modify it under
-*        the terms of the GNU Lesser General Public License version 2.1 as
-*        published by the Free Software Foundation.
-*
-*        This package is distributed in the hope that it will be useful, but
-*        WITHOUT ANY WARRANTY; without even the implied warranty of
-*        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*        Lesser General Public License for more details.
-*
-*        You should have received a copy of the GNU Lesser General Public
-*        License along with the NetFPGA source package.  If not, see
-*        http://www.gnu.org/licenses/.
-*
-*/
+//
+// Copyright (c) 2016 University of Cambridge All rights reserved.
+//
+// Author: Marco Forconesi
+//
+// This software was developed with the support of 
+// Prof. Gustavo Sutter and Prof. Sergio Lopez-Buedo and
+// University of Cambridge Computer Laboratory NetFPGA team.
+//
+// @NETFPGA_LICENSE_HEADER_START@
+//
+// Licensed to NetFPGA C.I.C. (NetFPGA) under one or more
+// contributor license agreements.  See the NOTICE file distributed with this
+// work for additional information regarding copyright ownership.  NetFPGA
+// licenses this file to you under the NetFPGA Hardware-Software License,
+// Version 1.0 (the "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at:
+//
+//   http://www.netfpga-cic.org
+//
+// Unless required by applicable law or agreed to in writing, Work distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations under the License.
+//
+// @NETFPGA_LICENSE_HEADER_END@
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 `timescale 1ns / 100ps
 //`default_nettype none
 `define pr_err(msg) $display("Out-Chk: ERROR %s", msg);
@@ -421,5 +408,5 @@ module out_chk_rx (
 
 endmodule // out_chk_rx
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
