@@ -1,7 +1,7 @@
 NFMAC10G: Open Source 10GbE MAC for FPGAs
 -----------------------------------------
 
-Author: Marco Forconesi
+Author: [Marco Forconesi](https://www.linkedin.com/in/forconesi)
 
 Acknowledges:  
 Prof. Gustavo Sutter and Prof. Sergio Lopez-Buedo  
@@ -23,7 +23,7 @@ The nfmac10g core has the standard NetFPGA license. See [NetFPGA C.I.C](http://n
 Compatibility
 -------------
 
-The core was designed to be port and functional equivalent to Xilinx 10GbE MAC (ten_gig_eth_mac). The motivation for its development is to have a non-paid license open-source version of the aforementioned core.
+The core was designed to be ported as a functional equivalent to Xilinx 10GbE MAC (ten_gig_eth_mac). The motivation behind the development is to have an open-source version of the aforementioned core.
 
 On the user side a pair of AXI4-Stream (one master and one slave) interfaces are used to send and receive Ethernet frames from/to the user logic. On the opposite side a pair of XGMII interfaces are used to transfer frames between the nfmac10g and the PCS/PMA (or XAUI) core.
 
@@ -41,7 +41,7 @@ A Makefile controls the simulation of the core. The test suite covers:
 
 `$ make sim PCAP=your_pcap_file.pcap # runs the test suite in batch mode and leaves an output log file`
 
-Performance: Latency and Throughput
+Performance evaluation: Latency and Throughput
 -----------------------------------
 
 NFMAC10G achieves 10Gbps line-rate in both Tx and Rx directions. The core is buffer-less which means no FIFO or buffer exists in the Rx nor Tx datapath.
@@ -61,7 +61,7 @@ Tx:
 Implementation on Virtex-7 FPGA
 -------------------------------
 
-The reported WNS is 3.354ns when synthesised with Vivado 2015.4 on the FPGA xc7vx690t-3 (the one present on the NetFPGA-SUME). The reported resources are shown in the table below.
+The reported WNS is 3.354ns when synthesised with Vivado 2015.4 on the FPGA xc7vx690t-3 (which is present on the NetFPGA-SUME). The reported resources are shown in the table below.
 
 |Resource|Used|Util%|
 |----|:---:|:--:|
@@ -73,9 +73,9 @@ The reported WNS is 3.354ns when synthesised with Vivado 2015.4 on the FPGA xc7v
 Limitations
 -----------
 
-Although the nfmac10g is compatible with the Xilinx ten_gig_eth_mac, only the needed functionality in the NetFPGA project was implemented. That means that some of the advanced configurations of the Xilinx core are not present in the nfmac10g. Users are encouraged to extend and contribute improvements back to the NetFPGA community.
+Although the nfmac10g is compatible with the Xilinx ten_gig_eth_mac, only the needed functionality in the NetFPGA project was implemented. In other words, some of the advanced configurations of the Xilinx core are not present in the nfmac10g. Users are encouraged to submit pull requests with extensions and improvements.
 
-List of capabilities not implemented:  
+Suggestions for the implementation of the additional features:
 * 32bit width interface (only 64bit is implemented)  
 * IEEE-1588 timestamping  
 * MDIO interface  
